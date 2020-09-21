@@ -21,22 +21,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"strconv"
-	"strings"
 )
-
-var pathCmdSub *strings.Replacer
-
-func init() {
-	// Handle permitted constructions like "100L200,230"
-	pathCmdSub = strings.NewReplacer(",", " ",
-		"L", " L ", "l", " l ",
-		"C", " C ", "c", " c ",
-		"M", " M ", "m", " m ",
-		"H", " H ", "h", " h ",
-		"V", " V ", "v", " v ",
-		"Q", " Q ", "q", " q ",
-		"Z", " Z ", "z", " z ")
-}
 
 // SVGBasicSegmentType describes a single curve or position segment
 type SVGBasicSegmentType struct {
@@ -125,14 +110,13 @@ func pathParse(pathStr string) (segs []SVGBasicSegmentType, err error) {
 	}
 	var str string
 	var c byte
-	pathStr = pathCmdSub.Replace(pathStr)
-	strList := strings.Fields(pathStr)
+	strList := splitPath(pathStr)
 	count := len(strList)
 	for j = 0; j < count && err == nil; j++ {
 		str = strList[j]
 		if argCount == 0 { // Look for path command or argument continuation
 			c = str[0]
-			if c == '-' || (c >= '0' && c <= '9') { // More arguments
+			if c == '-' || c == '.' || (c >= '0' && c <= '9') { // More arguments
 				if j > 0 {
 					setup(prevArgCount)
 					// Repeat previous action
@@ -187,6 +171,94 @@ func pathParse(pathStr string) (segs []SVGBasicSegmentType, err error) {
 		}
 	}
 	return
+}
+
+func splitPath(path string) []string {
+	const stateNone = 0
+	const stateMinus = 1
+	const stateNumber = 2
+	const stateDot = 3
+	const stateFraction = 4
+
+	var parts []string
+	var bytes = []byte(path)
+	var number []byte
+	var state int
+	var index = 0
+
+	for index < len(bytes) {
+		c := bytes[index]
+		index++
+		if state == stateNone && (c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z') {
+			parts = append(parts, string(c))
+		} else {
+			switch state {
+			case stateNone:
+				switch c {
+				case '-':
+					number = append(number, c)
+					state = stateMinus
+				case '.':
+					number = append(number, c)
+					state = stateDot
+				case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
+					number = append(number, c)
+					state = stateNumber
+				}
+			case stateMinus:
+				switch c {
+				case '.':
+					number = append(number, c)
+					state = stateDot
+				case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
+					number = append(number, c)
+					state = stateNumber
+				default:
+					number = nil
+					state = stateNone
+					index--
+				}
+			case stateNumber:
+				switch c {
+				case '.':
+					number = append(number, c)
+					state = stateDot
+				case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
+					number = append(number, c)
+				default:
+					parts = append(parts, string(number))
+					number = nil
+					state = stateNone
+					index--
+				}
+			case stateDot:
+				switch c {
+				case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
+					number = append(number, c)
+					state = stateFraction
+				default:
+					parts = append(parts, string(number))
+					number = nil
+					state = stateNone
+					index--
+				}
+			case stateFraction:
+				switch c {
+				case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
+					number = append(number, c)
+				default:
+					parts = append(parts, string(number))
+					number = nil
+					state = stateNone
+					index--
+				}
+			}
+		}
+	}
+	if state == stateNumber || state == stateFraction {
+		parts = append(parts, string(number))
+	}
+	return parts
 }
 
 // SVGBasicType aggregates the information needed to describe a multi-segment
