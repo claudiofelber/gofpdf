@@ -425,6 +425,12 @@ func (f *Fpdf) SetFontLoader(loader FontLoader) {
 	f.fontLoader = loader
 }
 
+// Defines a function that automatically converts UTF-8 text to code page
+// text.
+func (f *Fpdf) SetUnicodeTranslator(translator func(string) string) {
+	f.unicodeTranslator = translator
+}
+
 // SetHeaderFuncMode sets the function that lets the application render the
 // page header. See SetHeaderFunc() for more details. The value for homeMode
 // should be set to true to have the current position set to the left and top
@@ -974,6 +980,9 @@ func (f *Fpdf) GetStringSymbolWidth(s string) int {
 			}
 		}
 	} else {
+		if f.unicodeTranslator != nil {
+			s = f.unicodeTranslator(s)
+		}
 		for _, ch := range []byte(s) {
 			if ch == 0 {
 				break
@@ -2453,6 +2462,9 @@ func (f *Fpdf) CellFormat(w, h float64, txtStr, borderStr string, ln int,
 					f.currentFont.usedRunes[int(uni)] = int(uni)
 				}
 			} else {
+				if f.unicodeTranslator != nil {
+					txtStr = f.unicodeTranslator(txtStr)
+				}
 
 				txt2 = strings.Replace(txtStr, "\\", "\\\\", -1)
 				txt2 = strings.Replace(txt2, "(", "\\(", -1)
