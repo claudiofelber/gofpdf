@@ -124,7 +124,7 @@ func (f *Fpdf) HTMLBasicNew() (html HTMLBasicType) {
 // lineHt indicates the line height in the unit of measure specified in New().
 func (html *HTMLBasicType) Write(lineHt float64, htmlStr string) {
 	var boldLvl, italicLvl, underscoreLvl, linkBold, linkItalic, linkUnderscore int
-	var textR, textG, textB = html.pdf.GetTextColor()
+	var textR, textG, textB = html.pdf.getTextColor()
 	var hrefStr string
 	if html.Link.Bold {
 		linkBold = 1
@@ -153,11 +153,11 @@ func (html *HTMLBasicType) Write(lineHt float64, htmlStr string) {
 	}
 	putLink := func(urlStr, txtStr string) {
 		// Put a hyperlink
-		html.pdf.SetTextColor(html.Link.ClrR, html.Link.ClrG, html.Link.ClrB)
+		html.pdf.setTextColor(html.Link.ClrR, html.Link.ClrG, html.Link.ClrB)
 		setStyle(linkBold, linkItalic, linkUnderscore)
 		html.pdf.WriteLinkString(lineHt, txtStr, urlStr)
 		setStyle(-linkBold, -linkItalic, -linkUnderscore)
-		html.pdf.SetTextColor(textR, textG, textB)
+		html.pdf.setTextColor(textR, textG, textB)
 	}
 	list := HTMLBasicTokenize(htmlStr)
 	var ok bool

@@ -33,9 +33,9 @@ type StateType struct {
 
 // StateGet returns a variable that contains common state values.
 func StateGet(pdf *Fpdf) (st StateType) {
-	st.clrDraw.R, st.clrDraw.G, st.clrDraw.B = pdf.GetDrawColor()
-	st.clrFill.R, st.clrFill.G, st.clrFill.B = pdf.GetFillColor()
-	st.clrText.R, st.clrText.G, st.clrText.B = pdf.GetTextColor()
+	st.clrDraw.R, st.clrDraw.G, st.clrDraw.B = pdf.getDrawColor()
+	st.clrFill.R, st.clrFill.G, st.clrFill.B = pdf.getFillColor()
+	st.clrText.R, st.clrText.G, st.clrText.B = pdf.getTextColor()
 	st.lineWd = pdf.GetLineWidth()
 	_, st.fontSize = pdf.GetFontSize()
 	st.alpha, st.blendStr = pdf.GetAlpha()
@@ -46,9 +46,9 @@ func StateGet(pdf *Fpdf) (st StateType) {
 // Put sets the common state values contained in the state structure
 // specified by st.
 func (st StateType) Put(pdf *Fpdf) {
-	pdf.SetDrawColor(st.clrDraw.R, st.clrDraw.G, st.clrDraw.B)
-	pdf.SetFillColor(st.clrFill.R, st.clrFill.G, st.clrFill.B)
-	pdf.SetTextColor(st.clrText.R, st.clrText.G, st.clrText.B)
+	pdf.setDrawColor(st.clrDraw.R, st.clrDraw.G, st.clrDraw.B)
+	pdf.setFillColor(st.clrFill.R, st.clrFill.G, st.clrFill.B)
+	pdf.setTextColor(st.clrText.R, st.clrText.G, st.clrText.B)
 	pdf.SetLineWidth(st.lineWd)
 	pdf.SetFontUnitSize(st.fontSize)
 	pdf.SetAlpha(st.alpha, st.blendStr)
@@ -289,7 +289,7 @@ func (g *GridType) TickmarksExtentY(min, div float64, count int) {
 func lineAttr(pdf *Fpdf, clr RGBAType, lineWd float64) {
 	pdf.SetLineWidth(lineWd)
 	pdf.SetAlpha(clr.Alpha, "Normal")
-	pdf.SetDrawColor(clr.R, clr.G, clr.B)
+	pdf.setDrawColor(clr.R, clr.G, clr.B)
 }
 
 // Grid generates a graph-paperlike set of grid lines on the current page.
@@ -321,7 +321,7 @@ func (g GridType) Grid(pdf *Fpdf) {
 		pdf.SetAutoPageBreak(false, 0)
 		pdf.SetFontUnitSize(textSz)
 		strOfs = pdf.GetStringWidth("0")
-		pdf.SetFillColor(255, 255, 255)
+		pdf.setFillColor(255, 255, 255)
 		pdf.SetCellMargin(0)
 
 		xMin = g.xTicks[0]
