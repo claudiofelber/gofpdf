@@ -2116,9 +2116,19 @@ func (f *Fpdf) SetFont(familyStr, styleStr string, size float64) {
 	return
 }
 
-// SetFontStyle sets the style of the current font. See also SetFont()
+// GetFontFamily returns the currently family of the current font.
+func (f *Fpdf) GetFontFamily() string {
+	return f.fontFamily
+}
+
+// SetFontStyle sets the style of the current font. See also SetFont().
 func (f *Fpdf) SetFontStyle(styleStr string) {
 	f.SetFont(f.fontFamily, styleStr, f.fontSizePt)
+}
+
+// GetFontStyle returns the style of the current font.
+func (f *Fpdf) GetFontStyle() string {
+	return f.fontStyle
 }
 
 // SetFontSize defines the size of the current font. Size is specified in
